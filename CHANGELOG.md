@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2024-12-19
+
+### Fixed
+- Removed unnecessary catch block in Swift code that was causing compiler warnings
+- Improved error handling in native macOS implementation
+- Cleaned up Swift code structure for better maintainability
+
+### Improved
+- Enhanced code documentation and comments
+- Better error messaging for edge cases
+- Optimized Swift implementation for performance
+
+### Documentation
+- Updated README with more detailed usage examples
+- Improved API documentation
+- Added troubleshooting section
+
 ## [1.0.0] - 2024-12-19
 
 ### Added

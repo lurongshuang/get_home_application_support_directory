@@ -18,6 +18,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   String _applicationSupportPath = 'Unknown';
+  String _subdirectoryPath = 'Not created';
+  bool _isSupported = false;
   final _getHomeApplicationSupportDirectoryPlugin =
       GetHomeApplicationSupportDirectory();
 
@@ -31,6 +33,10 @@ class _MyAppState extends State<MyApp> {
   Future<void> initPlatformState() async {
     String platformVersion;
     String applicationSupportPath;
+    bool isSupported;
+
+    // Check platform support
+    isSupported = GetHomeApplicationSupportDirectory.isSupported;
 
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
@@ -61,7 +67,26 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _platformVersion = platformVersion;
       _applicationSupportPath = applicationSupportPath;
+      _isSupported = isSupported;
     });
+  }
+
+  Future<void> _createSubdirectory() async {
+    try {
+      final subdirectoryPath = await _getHomeApplicationSupportDirectoryPlugin
+          .createSubdirectory('FlutterTestApp');
+      setState(() {
+        _subdirectoryPath = subdirectoryPath ?? 'Failed to create subdirectory';
+      });
+    } on PlatformException catch (e) {
+      setState(() {
+        _subdirectoryPath = 'Error creating subdirectory: ${e.message}';
+      });
+    } catch (e) {
+      setState(() {
+        _subdirectoryPath = 'Error: $e';
+      });
+    }
   }
 
   @override
@@ -75,63 +100,151 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Platform Version:',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Platform Support Card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Platform Support:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _platformVersion,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              _isSupported ? Icons.check_circle : Icons.cancel,
+                              color: _isSupported ? Colors.green : Colors.red,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isSupported
+                                  ? 'Supported on this platform'
+                                  : 'Not supported on this platform',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _isSupported ? Colors.green : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Application Support Directory:',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                const SizedBox(height: 16),
+
+                // Platform Version Card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Platform Version:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      SelectableText(
-                        _applicationSupportPath,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'monospace',
+                        const SizedBox(height: 8),
+                        Text(
+                          _platformVersion,
+                          style: const TextStyle(fontSize: 14),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: initPlatformState,
-                child: const Text('Refresh'),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // Application Support Directory Card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Application Support Directory:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SelectableText(
+                          _applicationSupportPath,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Subdirectory Creation Card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Created Subdirectory:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SelectableText(
+                          _subdirectoryPath,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton.icon(
+                          onPressed: _isSupported ? _createSubdirectory : null,
+                          icon: const Icon(Icons.create_new_folder),
+                          label: const Text('Create Test Subdirectory'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Refresh Button
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: initPlatformState,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh All'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

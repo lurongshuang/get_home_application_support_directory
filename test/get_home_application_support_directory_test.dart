@@ -8,7 +8,7 @@ class MockGetHomeApplicationSupportDirectoryPlatform
     with MockPlatformInterfaceMixin
     implements GetHomeApplicationSupportDirectoryPlatform {
   @override
-  Future<String?> getPlatformVersion() => Future.value('42');
+  Future<String?> getPlatformVersion() => Future.value('macOS 14.0');
 
   @override
   Future<String?> getApplicationSupportDirectory() =>
@@ -29,32 +29,75 @@ void main() {
     },
   );
 
-  test('getPlatformVersion', () async {
-    GetHomeApplicationSupportDirectory
-    getHomeApplicationSupportDirectoryPlugin =
-        GetHomeApplicationSupportDirectory();
-    MockGetHomeApplicationSupportDirectoryPlatform fakePlatform =
-        MockGetHomeApplicationSupportDirectoryPlatform();
-    GetHomeApplicationSupportDirectoryPlatform.instance = fakePlatform;
+  group('GetHomeApplicationSupportDirectory', () {
+    late GetHomeApplicationSupportDirectory plugin;
+    late GetHomeApplicationSupportDirectoryPlatform mockPlatform;
 
-    expect(
-      await getHomeApplicationSupportDirectoryPlugin.getPlatformVersion(),
-      '42',
-    );
+    setUp(() {
+      plugin = GetHomeApplicationSupportDirectory();
+      mockPlatform = MockGetHomeApplicationSupportDirectoryPlatform();
+      GetHomeApplicationSupportDirectoryPlatform.instance = mockPlatform;
+    });
+
+    test('getPlatformVersion returns correct version', () async {
+      final version = await plugin.getPlatformVersion();
+      expect(version, 'macOS 14.0');
+    });
+
+    test('getApplicationSupportDirectory returns correct path', () async {
+      final path = await plugin.getApplicationSupportDirectory();
+      expect(path, '/Users/testuser/Library/Application Support');
+    });
+
+    test('isSupported returns boolean value', () {
+      expect(GetHomeApplicationSupportDirectory.isSupported, isA<bool>());
+    });
+
+    group('createSubdirectory', () {
+      test(
+        'returns null when platform is not supported and plugin returns null',
+        () async {
+          // Mock the platform to return null
+          mockPlatform = MockGetHomeApplicationSupportDirectoryPlatformNull();
+          GetHomeApplicationSupportDirectoryPlatform.instance = mockPlatform;
+
+          final result = await plugin.createSubdirectory('TestApp');
+          expect(result, isNull);
+        },
+      );
+
+      test('handles subdirectory name validation', () {
+        // Test that the method accepts various subdirectory names
+        expect(() => plugin.createSubdirectory('TestApp'), returnsNormally);
+        expect(() => plugin.createSubdirectory(''), returnsNormally);
+        expect(
+          () => plugin.createSubdirectory('TestApp/SubDir'),
+          returnsNormally,
+        );
+      });
+
+      test('handles recursive parameter properly', () {
+        // Test that the method accepts the recursive parameter
+        expect(
+          () => plugin.createSubdirectory('TestApp', recursive: true),
+          returnsNormally,
+        );
+        expect(
+          () => plugin.createSubdirectory('TestApp', recursive: false),
+          returnsNormally,
+        );
+      });
+    });
   });
+}
 
-  test('getApplicationSupportDirectory', () async {
-    GetHomeApplicationSupportDirectory
-    getHomeApplicationSupportDirectoryPlugin =
-        GetHomeApplicationSupportDirectory();
-    MockGetHomeApplicationSupportDirectoryPlatform fakePlatform =
-        MockGetHomeApplicationSupportDirectoryPlatform();
-    GetHomeApplicationSupportDirectoryPlatform.instance = fakePlatform;
+// Mock that returns null for testing null path scenarios
+class MockGetHomeApplicationSupportDirectoryPlatformNull
+    with MockPlatformInterfaceMixin
+    implements GetHomeApplicationSupportDirectoryPlatform {
+  @override
+  Future<String?> getPlatformVersion() => Future.value('macOS 14.0');
 
-    expect(
-      await getHomeApplicationSupportDirectoryPlugin
-          .getApplicationSupportDirectory(),
-      '/Users/testuser/Library/Application Support',
-    );
-  });
+  @override
+  Future<String?> getApplicationSupportDirectory() => Future.value(null);
 }

@@ -1,6 +1,6 @@
 name: get_home_application_support_directory
 description: A Flutter plugin that provides access to the macOS Application Support directory path. Perfect for apps that need to store user data and configuration files in the standard location.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/lurongshuang/get_home_application_support_directory
 repository: https://github.com/lurongshuang/get_home_application_support_directory
 issue_tracker: https://github.com/lurongshuang/get_home_application_support_directory/issues
